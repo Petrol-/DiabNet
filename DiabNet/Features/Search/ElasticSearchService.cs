@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DiabNet.Features.Search.Models;
 using Nest;
@@ -37,6 +38,20 @@ namespace DiabNet.Features.Search
             {
                 throw new Exception("could not index document");
             }
+        }
+
+        public async Task<IEnumerable<SgvPoint>> FetchSgvPointRange(DateTimeOffset from, DateTimeOffset to, int? limit = null)
+        {
+            var result = await _client.SearchAsync<SgvPoint>(s => s
+                .Index(EntryIndex)
+                .Size(limit)
+                .Query(q => q
+                    .DateRange(d => d
+                        .Field(field => field.Date)
+                        .GreaterThanOrEquals(from.DateTime)
+                        .LessThanOrEquals(to.DateTime)))
+                .Sort(sort => sort.Descending(desc => desc.Date)));
+           return  result.Documents;
         }
     }
 }

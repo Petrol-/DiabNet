@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 using DiabNet.Features.Search;
@@ -51,6 +52,36 @@ namespace DiabNet.TestIT.Features.Search
             var response = await _client.GetAsync<Sgv>(toInsert.Id, i => i.Index(ElasticSearchService.EntryIndex));
             Assert.IsTrue(response.Found);
             Assert.AreEqual(toInsert.Value, response.Source.Value);
+        }
+
+        [Test]
+        public async Task Should_return_point_between_from_and_to_dates()
+        {
+            var from = DateTimeOffset.Now;
+            var to = DateTimeOffset.Now.AddHours(3);
+            var point1 = from.AddHours(1);
+            var point2 = from.AddHours(2);
+            var point3 = from.AddDays(10);
+            await InsertSgvPointAtDate(point1);
+            await InsertSgvPointAtDate(point2);
+            await InsertSgvPointAtDate(point3);
+            await Task.Delay(500); //give a little time to ingest data
+
+            var results = await _searchService.FetchSgvPointRange(from, to);
+
+            Assert.That(results.Count(), Is.EqualTo(2));
+        }
+
+        private async Task InsertSgvPointAtDate(DateTimeOffset date)
+        {
+            var toInsert = new SgvPoint(date.ToString())
+            {
+                Date = date,
+                Delta = 1,
+                Trend = Trend.Flat,
+                Value = new Random().Next()
+            };
+            await _searchService.InsertSgvPoint(toInsert);
         }
     }
 }
