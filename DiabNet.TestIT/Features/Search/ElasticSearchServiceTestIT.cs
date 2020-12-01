@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 using DiabNet.Features.Search;
-using Microsoft.Extensions.Configuration;
 using Nest;
 using NUnit.Framework;
 
@@ -10,27 +9,27 @@ namespace DiabNet.TestIT.Features.Search
 {
     public class ElasticSearchServiceTestIt
     {
-        private string _esUrl;
         private ElasticSearchService _searchService;
         private ElasticClient _client;
 
-        [OneTimeSetUp]
-        public void Init()
-        {
-            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
-            _esUrl = configuration["ELASTIC_URL"];
-        }
-
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
-            _client = new ElasticClient(new Uri(_esUrl));
+            _client = new ElasticClient(new Uri(ElasticSearchTestContainer.Url));
             _searchService = new ElasticSearchService(_client);
+
+            //Remove the index (clear the data)
+            await _client.Indices.DeleteAsync(ElasticSearchService.EntryIndex);
+            //Create indices to allow all tests to work
+            await _searchService.EnsureInitialized();
         }
 
         [Test]
         public async Task Initialize_should_ensure_entry_index_is_created()
         {
+            //For this test, delete Index, it should be recreated
+            await _client.Indices.DeleteAsync(ElasticSearchService.EntryIndex);
+
             await _searchService.EnsureInitialized();
             var existsResponse = await _client.Indices.ExistsAsync(ElasticSearchService.EntryIndex);
             Assert.IsTrue(existsResponse.Exists);
