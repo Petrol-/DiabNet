@@ -1,5 +1,6 @@
 ﻿using System;
-namespace DiabNet.Features.Nightscout
+
+namespace DiabNet.Features.Synchronization.Nightscout
 {
     public class NightscoutException : Exception
     {

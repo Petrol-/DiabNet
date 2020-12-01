@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <Folder Include="Features\" />
-    <Folder Include="Features\Nightscout\" />
+    <Folder Include="Features\Synchronization" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DiabNet\DiabNet.csproj" />

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DiabNet.Features.Nightscout;
+using DiabNet.Features.Synchronization.Nightscout;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NUnit.Framework;
 
-namespace DiabNet.TestIT.Features.Nightscout
+namespace DiabNet.TestIT.Features.Synchronization.Nightscout
 {
     public class NightscoutApiTest
     {

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using DiabNet.Domain;
 
-namespace DiabNet.Features.Nightscout
+namespace DiabNet.Features.Synchronization.Nightscout
 {
     public class SgvDto
     {
@@ -23,7 +22,7 @@ namespace DiabNet.Features.Nightscout
         public double Delta { get; set; }
 
 
-        public SgvTrend toTrend()
+        public SgvTrend ToTrend()
         {
             switch (Direction)
             {

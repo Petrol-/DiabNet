@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 
-namespace DiabNet.Features.Nightscout
+namespace DiabNet.Features.Synchronization.Nightscout
 {
     public class NightscoutApi
     {
@@ -32,7 +32,7 @@ namespace DiabNet.Features.Nightscout
                 Date = v.Date,
                 Delta = v.Delta,
                 Value = v.Sgv,
-                Trend = v.toTrend()
+                Trend = v.ToTrend()
             }).ToList();
         }
     }

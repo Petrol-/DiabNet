@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using DiabNet.Features.Nightscout;
 using DiabNet.Features.Search;
+using DiabNet.Features.Synchronization.Nightscout;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
