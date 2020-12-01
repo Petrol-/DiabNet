@@ -90,7 +90,12 @@ namespace DiabNet.TestIT
                 Name = _containerName,
                 Image = EsDockerImage,
 
-                Env = new List<string> {"discovery.type=single-node"},
+                Env = new List<string>
+                {
+                    "discovery.type=single-node",
+                    "http.cors.enabled=true",
+                    "http.cors.allow-origin=*"
+                },
                 ExposedPorts = new Dictionary<string, EmptyStruct>
                 {
                     {
