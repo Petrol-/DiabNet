@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 using DiabNet.Features.Search;
+using DiabNet.Features.Search.Models;
 using Nest;
 using NUnit.Framework;
 
@@ -38,15 +39,14 @@ namespace DiabNet.TestIT.Features.Search
         [Test]
         public async Task Should_insert_sgv()
         {
-            var toInsert = new Sgv
+            var toInsert = new SgvPoint(DateTimeOffset.UtcNow.ToString())
             {
-                Id = DateTimeOffset.UtcNow.ToString(),
                 Date = DateTimeOffset.Now,
                 Delta = 1,
-                Trend = SgvTrend.Flat,
+                Trend = Trend.Flat,
                 Value = new Random().Next()
             };
-            await _searchService.InsertSgv(toInsert);
+            await _searchService.InsertSgvPoint(toInsert);
 
             var response = await _client.GetAsync<Sgv>(toInsert.Id, i => i.Index(ElasticSearchService.EntryIndex));
             Assert.IsTrue(response.Found);

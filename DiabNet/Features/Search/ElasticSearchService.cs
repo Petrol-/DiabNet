@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DiabNet.Domain;
+using DiabNet.Features.Search.Models;
 using Nest;
 
 namespace DiabNet.Features.Search
@@ -22,13 +22,13 @@ namespace DiabNet.Features.Search
             if (!entryIndex.Exists)
             {
                 var descriptor = new CreateIndexDescriptor(EntryIndex)
-                    .Map<Sgv>(m => m
+                    .Map<SgvPoint>(m => m
                         .AutoMap());
                 await _client.Indices.CreateAsync(descriptor);
             }
         }
 
-        public async Task InsertSgv(Sgv sgv)
+        public async Task InsertSgvPoint(SgvPoint sgv)
         {
             var result = await _client
                 .IndexAsync(sgv, (s) => s
