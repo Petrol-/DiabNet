@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DiabNet.Domain;
@@ -22,9 +23,12 @@ namespace DiabNet.TestIT.Features.Search
 
             //Remove the index (clear the data)
             await _client.Indices.DeleteAsync(ElasticSearchService.EntryIndex);
+            await _client.Indices.DeleteAsync(ElasticSearchService.MetaIndex);
             //Create indices to allow all tests to work
             await _searchService.EnsureInitialized();
         }
+
+        #region Initialize
 
         [Test]
         public async Task Initialize_should_ensure_entry_index_is_created()
@@ -38,6 +42,21 @@ namespace DiabNet.TestIT.Features.Search
         }
 
         [Test]
+        public async Task Initialize_should_ensure_meta_index_is_created()
+        {
+            //For this test, delete Index, it should be recreated
+            await _client.Indices.DeleteAsync(ElasticSearchService.MetaIndex);
+
+            await _searchService.EnsureInitialized();
+            var existsResponse = await _client.Indices.ExistsAsync(ElasticSearchService.MetaIndex);
+            Assert.IsTrue(existsResponse.Exists);
+        }
+
+        #endregion
+
+        #region Entry
+
+        [Test]
         public async Task Should_insert_sgv()
         {
             var toInsert = new SgvPoint(DateTimeOffset.UtcNow.ToString())
@@ -49,7 +68,8 @@ namespace DiabNet.TestIT.Features.Search
             };
             await _searchService.InsertSgvPoint(toInsert);
 
-            var response = await _client.GetAsync<Sgv>(toInsert.Id, i => i.Index(ElasticSearchService.EntryIndex));
+            var response = await _client.GetAsync<SgvPoint>(toInsert.Id,
+                i => i.Index(ElasticSearchService.EntryIndex));
             Assert.IsTrue(response.Found);
             Assert.AreEqual(toInsert.Value, response.Source.Value);
         }
@@ -65,7 +85,7 @@ namespace DiabNet.TestIT.Features.Search
             await InsertSgvPointAtDate(point1);
             await InsertSgvPointAtDate(point2);
             await InsertSgvPointAtDate(point3);
-            await Task.Delay(500); //give a little time to ingest data
+            await Task.Delay(1000); //give a little time to ingest data
 
             var results = await _searchService.FetchSgvPointRange(from, to);
 
@@ -83,5 +103,43 @@ namespace DiabNet.TestIT.Features.Search
             };
             await _searchService.InsertSgvPoint(toInsert);
         }
+
+        #endregion
+
+        #region Metas
+
+        [Test]
+        public async Task Should_insert_meta_point()
+        {
+            var toInsert = new MetaPoint(DateTimeOffset.UtcNow.ToString())
+            {
+                Date = DateTimeOffset.Now,
+                Delta = 1,
+                Trend = Trend.Flat,
+                Value = new Random().Next(), Tags = new List<string> {"hello", "world"},
+                Treatment = new Treatment {FastInsulin = 1, SlowInsulin = 2}
+            };
+            await _searchService.InsertMetaPoint(toInsert);
+
+            var response = await _client.GetAsync<MetaPoint>(toInsert.Id, i => i.Index(ElasticSearchService.MetaIndex));
+            Assert.IsTrue(response.Found);
+            Assert.AreEqual(toInsert.Value, response.Source.Value);
+        }
+
+        private async Task InsertMetaPointAtDate(DateTimeOffset date)
+        {
+            var toInsert = new MetaPoint(date.ToString())
+            {
+                Date = date,
+                Delta = 1,
+                Trend = Trend.Flat,
+                Value = new Random().Next(),
+                Tags = new List<string> {"hello", "world"},
+                Treatment = new Treatment {FastInsulin = 1, SlowInsulin = 2}
+            };
+            await _searchService.InsertMetaPoint(toInsert);
+        }
+
+        #endregion
     }
 }
