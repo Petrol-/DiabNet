@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DiabNet.Domain;
 using DiabNet.Features.Search;
 using DiabNet.Features.Search.Models;
 using Nest;
@@ -23,7 +22,6 @@ namespace DiabNet.TestIT.Features.Search
 
             //Remove the index (clear the data)
             await _client.Indices.DeleteAsync(ElasticSearchService.EntryIndex);
-            await _client.Indices.DeleteAsync(ElasticSearchService.MetaIndex);
             //Create indices to allow all tests to work
             await _searchService.EnsureInitialized();
         }
@@ -38,17 +36,6 @@ namespace DiabNet.TestIT.Features.Search
 
             await _searchService.EnsureInitialized();
             var existsResponse = await _client.Indices.ExistsAsync(ElasticSearchService.EntryIndex);
-            Assert.IsTrue(existsResponse.Exists);
-        }
-
-        [Test]
-        public async Task Initialize_should_ensure_meta_index_is_created()
-        {
-            //For this test, delete Index, it should be recreated
-            await _client.Indices.DeleteAsync(ElasticSearchService.MetaIndex);
-
-            await _searchService.EnsureInitialized();
-            var existsResponse = await _client.Indices.ExistsAsync(ElasticSearchService.MetaIndex);
             Assert.IsTrue(existsResponse.Exists);
         }
 
@@ -104,40 +91,107 @@ namespace DiabNet.TestIT.Features.Search
             await _searchService.InsertSgvPoint(toInsert);
         }
 
-        #endregion
-
-        #region Metas
-
         [Test]
-        public async Task Should_insert_meta_point()
+        public async Task SearchSimilarPoints_should_filter_result_with_value_2_times_given_value()
         {
-            var toInsert = new MetaPoint(DateTimeOffset.UtcNow.ToString())
-            {
-                Date = DateTimeOffset.Now,
-                Delta = 1,
-                Trend = Trend.Flat,
-                Value = new Random().Next(), Tags = new List<string> {"hello", "world"},
-                Treatment = new Treatment {FastInsulin = 1, SlowInsulin = 2}
-            };
-            await _searchService.InsertMetaPoint(toInsert);
+            await InsertSvgPoint(Trend.Unknown, 49, null);
 
-            var response = await _client.GetAsync<MetaPoint>(toInsert.Id, i => i.Index(ElasticSearchService.MetaIndex));
-            Assert.IsTrue(response.Found);
-            Assert.AreEqual(toInsert.Value, response.Source.Value);
+            await InsertSvgPoint(Trend.Unknown, 50, null);
+            await InsertSvgPoint(Trend.Unknown, 100, null);
+            await InsertSvgPoint(Trend.Unknown, 200, null);
+
+            await InsertSvgPoint(Trend.Unknown, 201, null);
+            await Task.Delay(1000);
+
+            var results = await _searchService.SearchSimilarPoints(new SgvPoint("")
+            {
+                Value = 100
+            });
+
+            Assert.AreEqual(3, results.Count());
         }
 
-        private async Task InsertMetaPointAtDate(DateTimeOffset date)
+        [Test]
+        public async Task SearchSimilarPoints_scoring_should_allow_null_treatment()
         {
-            var toInsert = new MetaPoint(date.ToString())
+            await InsertSvgPoint(Trend.Unknown, 100, null);
+
+            await Task.Delay(1000);
+            var resuls = await _searchService.SearchSimilarPoints(new SgvPoint("test")
             {
-                Date = date,
-                Delta = 1,
-                Trend = Trend.Flat,
-                Value = new Random().Next(),
-                Tags = new List<string> {"hello", "world"},
-                Treatment = new Treatment {FastInsulin = 1, SlowInsulin = 2}
+                Value = 100
+            });
+
+            Assert.AreEqual(resuls.First().Value, 100);
+        }
+
+        [Test]
+        public async Task SearchSimilarPoints_scoring_should_order_results_by_nearest_value()
+        {
+            await InsertSvgPoint(Trend.Unknown, 100, null);
+            await InsertSvgPoint(Trend.Unknown, 120, null);
+            await InsertSvgPoint(Trend.Unknown, 130, null);
+
+            await Task.Delay(1000);
+            var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
+            {
+                Value = 100
+            });
+            var matches  = results.ToList();
+            Assert.AreEqual(matches[0].Value, 100);
+            Assert.AreEqual(matches[1].Value, 120);
+            Assert.AreEqual(matches[2].Value, 130);
+        }
+
+        [Test]
+        public async Task SearchSimilarPoints_scoring_should_order_results_by_nearest_trend()
+        {
+            await InsertSvgPoint(Trend.DoubleDown, 100, null);
+            await InsertSvgPoint(Trend.Down, 100, null);
+            await InsertSvgPoint(Trend.Flat, 100, null);
+
+            await Task.Delay(1000);
+            var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
+            {
+                Value = 100,
+                Trend = Trend.Flat
+            });
+            var matches  = results.ToList();
+            Assert.AreEqual(matches[0].Trend, Trend.Flat);
+            Assert.AreEqual(matches[1].Trend, Trend.Down);
+            Assert.AreEqual(matches[2].Trend, Trend.DoubleDown);
+        }
+
+        [Test]
+        public async Task SearchSimilarPoints_scoring_should_order_results_by_number_of_matching_tags()
+        {
+            await InsertSvgPoint(Trend.Unknown, 100, null);
+            await InsertSvgPoint(Trend.Unknown, 101, null, "coca");
+            await InsertSvgPoint(Trend.Unknown, 102, null,"coca", "pain");
+
+            await Task.Delay(1000);
+            var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
+            {
+                Value = 100,
+                Tags = new List<string>{"coca", "pain"}
+            });
+            var matches  = results.ToList();
+            Assert.AreEqual(matches[0].Tags.Count, 2);
+            Assert.AreEqual(matches[1].Tags.Count, 1);
+            Assert.AreEqual(matches[2].Tags.Count, 0);
+        }
+
+        private async Task InsertSvgPoint(Trend trend, double value, Treatment? treatment, params string[] tags)
+        {
+            SgvPoint toInsert = new(DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString())
+            {
+                Date = DateTimeOffset.Now,
+                Trend = trend,
+                Value = value,
+                Tags = tags,
+                Treatment = treatment
             };
-            await _searchService.InsertMetaPoint(toInsert);
+            await _searchService.InsertSgvPoint(toInsert);
         }
 
         #endregion

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Nest;
 
 namespace DiabNet.Features.Search.Models
@@ -20,5 +21,9 @@ namespace DiabNet.Features.Search.Models
         public Trend Trend { get; set; } = Trend.Unknown;
 
         public double Delta { get; set; }
+
+        public IList<string> Tags { get; set; } = new List<string>();
+
+        public Treatment? Treatment { get; set; }
     }
 }
