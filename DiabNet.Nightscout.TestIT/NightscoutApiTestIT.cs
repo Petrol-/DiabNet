@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DiabNet.Features.Synchronization.Nightscout;
 using Microsoft.Extensions.Configuration;
-using Moq;
 using NUnit.Framework;
 
-namespace DiabNet.TestIT.Features.Synchronization.Nightscout
+namespace DiabNet.Nightscout.TestIT
 {
     public class NightscoutApiTest
     {
         
-        private Mock<IHttpClientFactory> _factory;
         private NightscoutApi _api;
         private string _nightscoutUrl;
         [OneTimeSetUp]
@@ -24,12 +21,10 @@ namespace DiabNet.TestIT.Features.Synchronization.Nightscout
         [SetUp]
         public void Setup()
         {
-            _factory = new Mock<IHttpClientFactory>();
-            _factory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient
+            _api = new NightscoutApi(new HttpClient
             {
                 BaseAddress = new Uri(_nightscoutUrl)
             });
-            _api = new NightscoutApi(_factory.Object);
         }
 
         [Test]

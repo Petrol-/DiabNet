@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace DiabNet.TestIT
+namespace DiabNet.ElasticSearch.TestIT
 {
     [SetUpFixture]
     public class ExternalDependenciesInitializer

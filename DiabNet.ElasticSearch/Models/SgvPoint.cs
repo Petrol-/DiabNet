@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using DiabNet.Features.Search.Models;
 using Nest;
 
-namespace DiabNet.Features.Search.Models
+namespace DiabNet.ElasticSearch.Models
 {
     [ElasticsearchType(IdProperty = nameof(Id))]
 

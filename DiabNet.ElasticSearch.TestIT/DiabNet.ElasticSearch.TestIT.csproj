@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,12 +15,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Moq" Version="4.15.2" />
   </ItemGroup>
-
   <ItemGroup>
-    <Folder Include="Features\" />
-    <Folder Include="Features\Synchronization" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DiabNet\DiabNet.csproj" />
+    <ProjectReference Include="..\DiabNet.ElasticSearch\DiabNet.ElasticSearch.csproj" />
   </ItemGroup>
 </Project>

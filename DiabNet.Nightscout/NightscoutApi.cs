@@ -5,28 +5,28 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 
-namespace DiabNet.Features.Synchronization.Nightscout
+namespace DiabNet.Nightscout
 {
     public class NightscoutApi
     {
-        private const string ClientName = "nightscout";
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly HttpClient _client;
 
-        public NightscoutApi(IHttpClientFactory clientFactory)
+        public NightscoutApi(HttpClient client)
         {
-            _clientFactory = clientFactory;
+            _client = client;
         }
 
-        private HttpClient GetClient() => _clientFactory.CreateClient(ClientName);
 
         public async Task<IList<Sgv>> GetEntries()
         {
-            var response = await GetClient().GetAsync("entries.json");
+            var response = await _client.GetAsync("entries.json");
             if (!response.IsSuccessStatusCode)
                 throw new NightscoutException();
             var values =
                 await JsonSerializer.DeserializeAsync<List<SgvDto>>(await response.Content.ReadAsStreamAsync());
-            return values?.Select(v => new Sgv
+
+            if (values == null) throw new NightscoutException();
+            return values.Select(v => new Sgv
             {
                 Id = v.Id,
                 Date = v.Date,

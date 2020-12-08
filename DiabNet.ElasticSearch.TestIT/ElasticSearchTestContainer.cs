@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-namespace DiabNet.TestIT
+namespace DiabNet.ElasticSearch.TestIT
 {
     enum ContainerAction
     {

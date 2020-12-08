@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using DiabNet.Features.Search;
-using DiabNet.Features.Synchronization.Nightscout;
+using DiabNet.Domain.Services;
+using DiabNet.ElasticSearch;
+using DiabNet.Nightscout;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,8 +31,7 @@ namespace DiabNet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient("nightscout", c => { c.BaseAddress = new Uri(_nightscoutUrl); });
-            services.AddTransient<NightscoutApi>();
+            services.AddHttpClient<NightscoutApi>( client => { client.BaseAddress = new Uri(_nightscoutUrl); });
             services.AddSingleton(new ElasticClient(new Uri(_elasticUrl)));
             services.AddSingleton<ISearchService, ElasticSearchService>();
             services.AddControllers();

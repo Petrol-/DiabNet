@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DiabNet.Features.Search.Models;
+using DiabNet.Domain.Services;
+using DiabNet.ElasticSearch.Models;
 using Nest;
 
-namespace DiabNet.Features.Search
+namespace DiabNet.ElasticSearch
 {
     public class ElasticSearchService : ISearchService
     {

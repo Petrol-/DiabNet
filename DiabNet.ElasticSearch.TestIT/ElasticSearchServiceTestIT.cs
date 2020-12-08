@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DiabNet.Features.Search;
+using DiabNet.ElasticSearch.Models;
 using DiabNet.Features.Search.Models;
 using Nest;
 using NUnit.Framework;
 
-namespace DiabNet.TestIT.Features.Search
+namespace DiabNet.ElasticSearch.TestIT
 {
     public class ElasticSearchServiceTestIt
     {
@@ -181,7 +181,7 @@ namespace DiabNet.TestIT.Features.Search
             Assert.AreEqual(matches[2].Tags.Count, 0);
         }
 
-        private async Task InsertSvgPoint(Trend trend, double value, Treatment? treatment, params string[] tags)
+        private async Task InsertSvgPoint(Trend trend, double value, Treatment treatment, params string[] tags)
         {
             SgvPoint toInsert = new(DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString())
             {

@@ -1,4 +1,4 @@
-namespace DiabNet.Features.Search
+namespace DiabNet.Domain.Services
 {
     public interface ISearchService
     {
