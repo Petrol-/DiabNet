@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DiabNet.Domain;
@@ -25,12 +26,20 @@ namespace DiabNet.Sync
         public async Task Synchronize(DateRange range)
         {
             var dates = GenerateDates(range);
+            var total = 0;
+            Stopwatch executionTime = Stopwatch.StartNew();
             foreach (var date in dates)
             {
                 var entries = await LoadNextPoints(date);
+                var count = entries.Count;
+                total += count;
+                _log.LogInformation($"Got {count} entries for day {FormatDate(date)}");
                 await TryInsertPoints(entries);
             }
+            _log.LogInformation($"Synchronization finished: {total} entries from {FormatDate(range.From)} to {FormatDate(range.To)} (took {executionTime.Elapsed:g})");
         }
+
+        private string FormatDate(DateTimeOffset date) => $"{date:yyyy MMMM dd}";
 
         private IEnumerable<DateTimeOffset> GenerateDates(DateRange range)
         {
@@ -42,11 +51,12 @@ namespace DiabNet.Sync
                 .Select(day => start.AddDays(day));
         }
 
-        private async Task<IEnumerable<Sgv>> LoadNextPoints(DateTimeOffset date)
+        private async Task<IList<Sgv>> LoadNextPoints(DateTimeOffset date)
         {
             try
             {
-                return await _nightscoutApi.GetEntries(date, date);
+                var entries = await _nightscoutApi.GetEntries(date, date);
+                return entries.ToList();
             }
             catch (Exception e)
             {
