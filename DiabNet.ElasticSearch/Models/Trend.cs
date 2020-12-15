@@ -1,4 +1,4 @@
-namespace DiabNet.Features.Search.Models
+namespace DiabNet.ElasticSearch.Models
 {
     public enum Trend
     {

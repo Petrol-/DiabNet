@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DiabNet.Domain;
 using DiabNet.ElasticSearch.Models;
-using DiabNet.Features.Search.Models;
 using Nest;
 using NUnit.Framework;
+using Treatment = DiabNet.Domain.Treatment;
 
 namespace DiabNet.ElasticSearch.TestIT
 {
@@ -46,11 +47,12 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task Should_insert_sgv()
         {
-            var toInsert = new SgvPoint(DateTimeOffset.UtcNow.ToString())
+            var toInsert = new Sgv()
             {
+                Id = DateTimeOffset.UtcNow.ToString(),
                 Date = DateTimeOffset.Now,
                 Delta = 1,
-                Trend = Trend.Flat,
+                Trend = SgvTrend.Flat,
                 Value = new Random().Next()
             };
             await _searchService.InsertSgvPoint(toInsert);
@@ -81,11 +83,12 @@ namespace DiabNet.ElasticSearch.TestIT
 
         private async Task InsertSgvPointAtDate(DateTimeOffset date)
         {
-            var toInsert = new SgvPoint(date.ToString())
+            var toInsert = new Sgv()
             {
+                Id = date.ToString(),
                 Date = date,
                 Delta = 1,
-                Trend = Trend.Flat,
+                Trend = SgvTrend.Flat,
                 Value = new Random().Next()
             };
             await _searchService.InsertSgvPoint(toInsert);
@@ -94,13 +97,13 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task SearchSimilarPoints_should_filter_result_with_value_2_times_given_value()
         {
-            await InsertSvgPoint(Trend.Unknown, 49, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 49, null);
 
-            await InsertSvgPoint(Trend.Unknown, 50, null);
-            await InsertSvgPoint(Trend.Unknown, 100, null);
-            await InsertSvgPoint(Trend.Unknown, 200, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 50, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 100, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 200, null);
 
-            await InsertSvgPoint(Trend.Unknown, 201, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 201, null);
             await Task.Delay(1000);
 
             var results = await _searchService.SearchSimilarPoints(new SgvPoint("")
@@ -114,7 +117,7 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task SearchSimilarPoints_scoring_should_allow_null_treatment()
         {
-            await InsertSvgPoint(Trend.Unknown, 100, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 100, null);
 
             await Task.Delay(1000);
             var resuls = await _searchService.SearchSimilarPoints(new SgvPoint("test")
@@ -128,9 +131,9 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task SearchSimilarPoints_scoring_should_order_results_by_nearest_value()
         {
-            await InsertSvgPoint(Trend.Unknown, 100, null);
-            await InsertSvgPoint(Trend.Unknown, 120, null);
-            await InsertSvgPoint(Trend.Unknown, 130, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 100, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 120, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 130, null);
 
             await Task.Delay(1000);
             var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
@@ -146,9 +149,9 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task SearchSimilarPoints_scoring_should_order_results_by_nearest_trend()
         {
-            await InsertSvgPoint(Trend.DoubleDown, 100, null);
-            await InsertSvgPoint(Trend.Down, 100, null);
-            await InsertSvgPoint(Trend.Flat, 100, null);
+            await InsertSvgPoint(SgvTrend.DoubleDown, 100, null);
+            await InsertSvgPoint(SgvTrend.Down, 100, null);
+            await InsertSvgPoint(SgvTrend.Flat, 100, null);
 
             await Task.Delay(1000);
             var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
@@ -165,9 +168,9 @@ namespace DiabNet.ElasticSearch.TestIT
         [Test]
         public async Task SearchSimilarPoints_scoring_should_order_results_by_number_of_matching_tags()
         {
-            await InsertSvgPoint(Trend.Unknown, 100, null);
-            await InsertSvgPoint(Trend.Unknown, 101, null, "coca");
-            await InsertSvgPoint(Trend.Unknown, 102, null,"coca", "pain");
+            await InsertSvgPoint(SgvTrend.Unknown, 100, null);
+            await InsertSvgPoint(SgvTrend.Unknown, 101, null, "coca");
+            await InsertSvgPoint(SgvTrend.Unknown, 102, null,"coca", "pain");
 
             await Task.Delay(1000);
             var results = await _searchService.SearchSimilarPoints(new SgvPoint("test")
@@ -181,10 +184,11 @@ namespace DiabNet.ElasticSearch.TestIT
             Assert.AreEqual(matches[2].Tags.Count, 0);
         }
 
-        private async Task InsertSvgPoint(Trend trend, double value, Treatment treatment, params string[] tags)
+        private async Task InsertSvgPoint(SgvTrend trend, double value, Treatment treatment, params string[] tags)
         {
-            SgvPoint toInsert = new(DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString())
+            Sgv toInsert = new()
             {
+                Id = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(),
                 Date = DateTimeOffset.Now,
                 Trend = trend,
                 Value = value,

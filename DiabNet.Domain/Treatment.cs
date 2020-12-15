@@ -1,4 +1,4 @@
-namespace DiabNet.ElasticSearch.Models
+namespace DiabNet.Domain
 {
     public class Treatment
     {

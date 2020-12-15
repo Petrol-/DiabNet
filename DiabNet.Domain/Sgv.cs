@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DiabNet.Domain
 {
@@ -9,5 +10,11 @@ namespace DiabNet.Domain
         public double Value { get; set; }
         public SgvTrend Trend;
         public double Delta { get; set; }
+
+        public IList<string> Tags { get; set; } = new List<string>();
+
+        public Treatment? Treatment { get; set; }
+
+        public string Source { get; set; }
     }
 }

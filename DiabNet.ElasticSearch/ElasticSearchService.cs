@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DiabNet.Domain;
 using DiabNet.Domain.Services;
 using DiabNet.ElasticSearch.Models;
 using Nest;
@@ -30,10 +31,11 @@ namespace DiabNet.ElasticSearch
             }
         }
 
-        public async Task InsertSgvPoint(SgvPoint sgv)
+        public async Task InsertSgvPoint(Sgv sgv)
         {
+            var sgvPoint = SgvPoint.From(sgv);
             var result = await _client
-                .IndexAsync(sgv, (s) => s
+                .IndexAsync(sgvPoint, (s) => s
                     .Index(EntryIndex));
             if (!result.IsValid)
             {
