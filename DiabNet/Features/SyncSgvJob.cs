@@ -1,4 +1,7 @@
+using System;
 using System.Threading.Tasks;
+using DiabNet.Domain;
+using DiabNet.Domain.Services;
 using Microsoft.Extensions.Logging;
 using Quartz;
 namespace DiabNet.Features
@@ -7,14 +10,31 @@ namespace DiabNet.Features
     public class SyncSgvJob : IJob
     {
         private readonly ILogger<SyncSgvJob> _log;
+        private readonly ISgvSyncService _syncService;
 
-        public SyncSgvJob(ILogger<SyncSgvJob> log)
+        public SyncSgvJob(ILogger<SyncSgvJob> log, ISgvSyncService syncService)
         {
             _log = log;
+            _syncService = syncService;
         }
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
-            return Task.CompletedTask;
+            _log.LogInformation($"Synchronisation job started");
+            try
+            {
+                await _syncService.Synchronize(GenerateDateRangeOneHour());
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Synchronisation error");
+            }
+            _log.LogInformation($"Synchronisation job finished");
+        }
+
+        private DateRange GenerateDateRangeOneHour()
+        {
+            var now = DateTimeOffset.Now;
+            return new DateRange(now.AddHours(-1), now);
         }
     }
 }
