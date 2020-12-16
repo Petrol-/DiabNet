@@ -1,4 +1,3 @@
-using System;
 using DiabNet.Domain;
 
 namespace DiabNet.ElasticSearch.Models

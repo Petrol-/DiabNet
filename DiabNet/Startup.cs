@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using DiabNet.Configuration;
 using DiabNet.Domain.Services;
 using DiabNet.ElasticSearch;

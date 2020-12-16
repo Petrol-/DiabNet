@@ -25,7 +25,6 @@ namespace DiabNet.Configuration
 
         public void ReturnJob(IJob job)
         {
-            throw new System.NotImplementedException();
         }
     }
 }
