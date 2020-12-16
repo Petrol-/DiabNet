@@ -1,7 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using DiabNet.Configuration;
 using DiabNet.Domain.Services;
 using DiabNet.ElasticSearch;
+using DiabNet.Features;
+using DiabNet.HostedServices;
 using DiabNet.Nightscout;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Nest;
+using Quartz;
+using Quartz.Impl;
+using Quartz.Spi;
 
 namespace DiabNet
 {
@@ -34,12 +40,21 @@ namespace DiabNet
             services.AddHttpClient<NightscoutApi>( client => { client.BaseAddress = new Uri(_nightscoutUrl); });
             services.AddSingleton(new ElasticClient(new Uri(_elasticUrl)));
             services.AddSingleton<ISearchService, ElasticSearchService>();
+            // Add Quartz services
+            services.AddSingleton<IJobFactory, SingletonJobFactory>();
+            services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+            services.AddTransient<SyncSgvJob>();
+            // Add Job schedule
+            services.AddSingleton(new JobSchedule(typeof(SyncSgvJob), "* * 0/1 * * ?"));
+
+            services.AddHostedService<QuartzHostedService>();
+
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "DiabNet", Version = "v1"}); });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public async Task Configure(IApplicationBuilder app, IWebHostEnvironment env, ElasticSearchService searchService)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, ISearchService searchService)
         {
             if (env.IsDevelopment())
             {
@@ -55,8 +70,11 @@ namespace DiabNet
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            
-            await searchService.EnsureInitialized();
+
+            if (searchService is ElasticSearchService elastic)
+            {
+                await elastic.EnsureInitialized();
+            }
 
         }
     }
