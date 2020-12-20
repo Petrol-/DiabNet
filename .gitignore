@@ -405,3 +405,5 @@ ASALocalRun/
 .localhistory/
 
 launchSettings.json
+
+out/
