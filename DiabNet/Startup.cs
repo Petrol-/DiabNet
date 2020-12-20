@@ -27,8 +27,8 @@ namespace DiabNet
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _nightscoutUrl = configuration["NIGHTSCOUT_URL"];
-            _elasticUrl = configuration["ELASTIC_URL"];
+            _nightscoutUrl = configuration["Nightscout:Url"];
+            _elasticUrl = configuration["Elastic:Url"];
         }
 
         public IConfiguration Configuration { get; }
