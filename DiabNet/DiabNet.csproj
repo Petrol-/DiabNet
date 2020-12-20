@@ -17,5 +17,6 @@
     <ProjectReference Include="..\DiabNet.Domain\DiabNet.Domain.csproj" />
     <ProjectReference Include="..\DiabNet.ElasticSearch\DiabNet.ElasticSearch.csproj" />
     <ProjectReference Include="..\DiabNet.Nightscout\DiabNet.Nightscout.csproj" />
+    <ProjectReference Include="..\DiabNet.Sync\DiabNet.Sync.csproj" />
   </ItemGroup>
 </Project>
