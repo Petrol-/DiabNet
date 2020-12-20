@@ -5,6 +5,7 @@ using DiabNet.ElasticSearch;
 using DiabNet.Features;
 using DiabNet.HostedServices;
 using DiabNet.Nightscout;
+using DiabNet.Sync;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,10 +21,9 @@ namespace DiabNet
 {
     public class Startup
     {
-
         private readonly string _nightscoutUrl;
         private readonly string _elasticUrl;
-        
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -36,15 +36,19 @@ namespace DiabNet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient<NightscoutApi>( client => { client.BaseAddress = new Uri(_nightscoutUrl); });
+            services.AddHttpClient<INightscoutApi, NightscoutApi>(client =>
+            {
+                client.BaseAddress = new Uri(_nightscoutUrl);
+            });
             services.AddSingleton(new ElasticClient(new Uri(_elasticUrl)));
             services.AddSingleton<ISearchService, ElasticSearchService>();
+            services.AddSingleton<ISgvSyncService, SgvSyncService>();
             // Add Quartz services
             services.AddSingleton<IJobFactory, SingletonJobFactory>();
             services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
             services.AddTransient<SyncSgvJob>();
             // Add Job schedule
-            services.AddSingleton(new JobSchedule(typeof(SyncSgvJob), "* * 0/1 * * ?"));
+            services.AddSingleton(new JobSchedule(typeof(SyncSgvJob), "0 0 * ? * * *"));
 
             services.AddHostedService<QuartzHostedService>();
 
@@ -58,11 +62,11 @@ namespace DiabNet
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiabNet v1"));
             }
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiabNet v1"));
 
-            app.UseHttpsRedirection();
+           // app.UseHttpsRedirection();
 
             app.UseRouting();
 
@@ -74,7 +78,6 @@ namespace DiabNet
             {
                 await elastic.EnsureInitialized();
             }
-
         }
     }
 }
