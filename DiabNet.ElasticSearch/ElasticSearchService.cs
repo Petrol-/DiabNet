@@ -28,7 +28,7 @@ namespace DiabNet.ElasticSearch
             var entryIndex = await _client.Indices.ExistsAsync(EntryIndex);
             if (!entryIndex.IsValid)
                 throw new Exception("Could not initialize index", entryIndex.OriginalException);
-            _logger.LogInformation($"Index {entryIndex} does {(entryIndex.Exists ? "" : "not")} exists");
+            _logger.LogInformation($"Index {EntryIndex} does {(entryIndex.Exists ? "" : "not")} exists");
             if (!entryIndex.Exists)
             {
                 var descriptor = new CreateIndexDescriptor(EntryIndex)
