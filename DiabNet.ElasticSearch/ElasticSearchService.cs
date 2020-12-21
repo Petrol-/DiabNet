@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DiabNet.Domain;
 using DiabNet.Domain.Services;
 using DiabNet.ElasticSearch.Models;
+using Microsoft.Extensions.Logging;
 using Nest;
 
 namespace DiabNet.ElasticSearch
@@ -11,24 +12,32 @@ namespace DiabNet.ElasticSearch
     public class ElasticSearchService : ISearchService
     {
         private readonly ElasticClient _client;
+        private readonly ILogger<ElasticSearchService> _logger;
         public const string EntryIndex = "entries";
 
 
-        public ElasticSearchService(ElasticClient client)
+        public ElasticSearchService(ElasticClient client, ILogger<ElasticSearchService> logger)
         {
             _client = client;
+            _logger = logger;
         }
 
         public async Task EnsureInitialized()
         {
+            _logger.LogInformation("Checking index is initialized");
             var entryIndex = await _client.Indices.ExistsAsync(EntryIndex);
+            if (!entryIndex.IsValid)
+                throw new Exception("Could not initialize index", entryIndex.OriginalException);
+            _logger.LogInformation($"Index {entryIndex} does {(entryIndex.Exists ? "" : "not")} exists");
             if (!entryIndex.Exists)
             {
                 var descriptor = new CreateIndexDescriptor(EntryIndex)
                     .Map<SgvPoint>(m => m
                         .AutoMap());
                 await _client.Indices.CreateAsync(descriptor);
+                _logger.LogInformation($"Index {entryIndex} created");
             }
+            _logger.LogInformation("Index is initialized");
         }
 
         public async Task InsertSgvPoint(Sgv sgv)

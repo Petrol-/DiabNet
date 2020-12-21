@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using DiabNet.Domain;
 using DiabNet.ElasticSearch.Models;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Nest;
 using NUnit.Framework;
 using Treatment = DiabNet.Domain.Treatment;
@@ -14,12 +16,14 @@ namespace DiabNet.ElasticSearch.TestIT
     {
         private ElasticSearchService _searchService;
         private ElasticClient _client;
+        private Mock<ILogger<ElasticSearchService>> _loggerMock;
 
         [SetUp]
         public async Task Setup()
         {
             _client = new ElasticClient(new Uri(ElasticSearchTestContainer.Url));
-            _searchService = new ElasticSearchService(_client);
+            _loggerMock = new Mock<ILogger<ElasticSearchService>>();
+            _searchService = new ElasticSearchService(_client, _loggerMock.Object);
 
             //Remove the index (clear the data)
             await _client.Indices.DeleteAsync(ElasticSearchService.EntryIndex);
