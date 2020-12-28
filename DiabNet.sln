@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiabNet.Sync.Console", "Dia
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{13930770-0A7F-4A4B-9535-BCD048849463}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiabNet.Domain.Test", "DiabNet.Domain.Test\DiabNet.Domain.Test.csproj", "{3B56E631-2FF3-469F-9064-13B7CA7ACDB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{81D5E696-FDA4-4E0A-9D55-D7A65ED83A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81D5E696-FDA4-4E0A-9D55-D7A65ED83A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81D5E696-FDA4-4E0A-9D55-D7A65ED83A52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B56E631-2FF3-469F-9064-13B7CA7ACDB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B56E631-2FF3-469F-9064-13B7CA7ACDB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B56E631-2FF3-469F-9064-13B7CA7ACDB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B56E631-2FF3-469F-9064-13B7CA7ACDB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

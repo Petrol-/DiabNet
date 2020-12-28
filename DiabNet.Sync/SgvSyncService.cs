@@ -25,15 +25,15 @@ namespace DiabNet.Sync
 
         public async Task Synchronize(DateRange range)
         {
-            var dates = GenerateDates(range);
+            var ranges = range.SplitByDay(3);
             var total = 0;
             Stopwatch executionTime = Stopwatch.StartNew();
-            foreach (var date in dates)
+            foreach (var slice in ranges)
             {
-                var entries = await LoadNextPoints(date);
+                var entries = await LoadNextPoints(slice);
                 var count = entries.Count;
                 total += count;
-                _log.LogInformation($"Got {count} entries for day {FormatDate(date)}");
+                _log.LogInformation($"Got {count} entries for range {FormatDate(slice.From)} -> {FormatDate(slice.To)}");
                 await TryInsertPoints(entries);
             }
             _log.LogInformation($"Synchronization finished: {total} entries from {FormatDate(range.From)} to {FormatDate(range.To)} (took {executionTime.Elapsed:g})");
@@ -41,21 +41,11 @@ namespace DiabNet.Sync
 
         private string FormatDate(DateTimeOffset date) => $"{date:yyyy MMMM dd}";
 
-        private IEnumerable<DateTimeOffset> GenerateDates(DateRange range)
-        {
-            var start = range.From;
-            var end = range.To;
-
-            return Enumerable
-                .Range(0, (end - start).Days + 1)
-                .Select(day => start.AddDays(day));
-        }
-
-        private async Task<IList<Sgv>> LoadNextPoints(DateTimeOffset date)
+        private async Task<IList<Sgv>> LoadNextPoints(DateRange range)
         {
             try
             {
-                var entries = await _nightscoutApi.GetEntries(date, date);
+                var entries = await _nightscoutApi.GetEntries(range.From, range.To);
                 return entries.ToList();
             }
             catch (Exception e)
